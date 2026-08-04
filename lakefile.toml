@@ -1,6 +1,6 @@
 name = "Strasbourg2026"
 version = "0.1.0"
-defaultTargets = ["Exercises"]
+defaultTargets = ["Part1", "Part2", "Part3"]
 
 [[require]]
 name = "mathlib"
@@ -8,10 +8,23 @@ scope = "leanprover-community"
 rev = "v4.31.0-rc1"
 
 [[lean_lib]]
-name = "Exercises"
+name = "Part1"
 
-# Solutions.lean is withheld until after the course: the file is kept locally
-# but excluded by .gitignore, so its lean_lib target is commented out to keep
-# `lake build` working on a fresh clone. Restore both after the school.
+[[lean_lib]]
+name = "Part2"
+
+[[lean_lib]]
+name = "Part3"
+
+# The solution files are withheld until after the course: they are kept locally
+# but excluded by .gitignore, so their lean_lib targets are commented out to
+# keep `lake build` working on a fresh clone. Restore all of this after the
+# school (and add them back to defaultTargets).
 # [[lean_lib]]
-# name = "Solutions"
+# name = "Part1Solutions"
+#
+# [[lean_lib]]
+# name = "Part2Solutions"
+#
+# [[lean_lib]]
+# name = "Part3Solutions"

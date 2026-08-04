@@ -2,4 +2,6 @@
 .DS_Store
 
 # Withheld until after the course (see lakefile.toml)
-Solutions.lean
+Part1Solutions.lean
+Part2Solutions.lean
+Part3Solutions.lean

@@ -13,7 +13,7 @@
    then click **Create codespace**
    (to find an existing Codespace: https://github.com/codespaces)
 4. Wait for it to fully load (~5 minutes the first time)
-5. Check: open `Exercises.lean`, place the cursor on
+5. Check: open `Part1.lean`, place the cursor on
    `#check Nat.add_comm` → a tooltip should appear
 
 > **Be patient while Lean loads.** When you open a file, Lean
@@ -36,7 +36,7 @@
    ```
    lake exe cache get
    ```
-4. Open the folder in VS Code and open `Exercises.lean`. The first
+4. Open the folder in VS Code and open `Part1.lean`. The first
    load takes a few minutes while Lean starts up.
 
 **Fallback** (no installation): https://live.lean-lang.org
