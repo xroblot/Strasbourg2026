@@ -1,0 +1,5 @@
+.lake/
+.DS_Store
+
+# Withheld until after the course (see lakefile.toml)
+Solutions.lean
