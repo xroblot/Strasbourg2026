@@ -462,5 +462,3 @@ example {β : Type*} {f : α → β} (hf : Function.Injective f)
   sorry
 
 /- END TODO -/
-
-/-

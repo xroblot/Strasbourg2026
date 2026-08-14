@@ -27,6 +27,7 @@ import Mathlib.NumberTheory.FLT.Three
 
 noncomputable section
 
+/-
   # Algebraic structures
 
   Lean/Mathlib represents algebraic structures with **type classes**.
@@ -445,5 +446,3 @@ example : FermatLastTheoremFor 3 := by
   sorry
 
 /- END TODO -/
-
-/-
