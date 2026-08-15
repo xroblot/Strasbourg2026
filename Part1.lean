@@ -189,22 +189,60 @@ noncomputable section
   # Everything has a type
 
   Lean's basic discipline is that every expression has exactly one
-  **type**, known at the time the expression is elaborated. `2` is a
-  natural number, `ℝ` is a type, `Nat.add_comm` is a proof.
+  **type**, fixed when the expression is elaborated. The command
+  `#check e` displays the type of `e`; use it constantly.
 
-  Two commands let you interrogate this:
-  * `#check e` displays the type of `e`;
-  * `#eval e` computes the value of `e`, when it can be computed.
-
-  Try moving your cursor onto the lines below, and watch the panel on
-  the right.
+  What is striking is how far the idea is pushed. Numbers have types,
+  of course. But so do types themselves; so do functions; so do
+  statements; and so do *proofs*. Everything below is one language.
 -/
 
--- The type of a theorem *is* its statement — a proof is a term
--- whose type is the thing proved. More on this in a moment.
-#check Nat.add_comm   -- ∀ (n m : ℕ), n + m = m + n
+-- Ordinary values
+#check 2                      -- ℕ  (the default for a bare numeral)
+#check (2 : ℝ)                -- ℝ  (a type ascription forces the choice)
+#check (2, 3)                 -- ℕ × ℕ
 
-#eval 2 ^ 10          -- 1024
+-- Types are themselves expressions, with a type of their own
+#check ℕ                       -- Type
+#check ℝ → ℝ                   -- Type
+
+-- Functions
+#check fun n : ℕ ↦ n + 1     -- ℕ → ℕ
+#check Nat.succ               -- ℕ → ℕ
+
+-- Statements: a *statement* is an expression of type `Prop`…
+#check 2 + 2 = 4              -- Prop
+#check 2 + 2 = 5              -- Prop  ← being a statement is not being true!
+#check ∀ n : ℕ, n + 0 = n     -- Prop
+
+-- … and a *proof* is an expression whose type is the statement proved.
+-- This is the single most important idea in Lean.
+#check Nat.add_comm           -- ∀ (n m : ℕ), n + m = m + n
+#check Nat.add_comm 2 3       -- 2 + 3 = 3 + 2
+
+/-
+  Read those last two lines again. `Nat.add_comm` is not a label
+  attached to a theorem stored elsewhere: it *is* the proof, and its
+  type is the statement. Applying it to `2` and `3`, as one applies a
+  function to arguments, yields a proof of the particular instance.
+
+  So "having a proof of P" and "having a term of type P" are the same
+  thing, and the kernel's job — checking a proof — is exactly its job
+  of checking a type. This is why the two styles announced below,
+  terms and tactics, are not really two things.
+-/
+
+/-
+  ## Lean also computes
+
+  Lean is a programming language too, so some expressions can simply be
+  run. `#eval e` computes the value of `e` — this is the interpreter
+  mentioned above. It is occasionally handy for checking a definition
+  against an example, or for seeing what a notation really means.
+-/
+
+#eval 2 ^ 10                  -- 1024
+#eval (List.range 5).sum      -- 10
 
 /-
   # The shape of a statement
@@ -741,7 +779,7 @@ example (n : ℕ) : n + 0 = n := by
 
 example (n : ℕ) (x : ℝ) : ℝ := x + n     -- really `x + ↑n`
 
-#check fun (n : ℕ) => (n : ℝ)            -- ℕ → ℝ, i.e. `Nat.cast`
+#check fun (n : ℕ) ↦ (n : ℝ)            -- ℕ → ℝ, i.e. `Nat.cast`
 
 /-
   Two tactics do the bookkeeping:
