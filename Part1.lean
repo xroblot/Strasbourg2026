@@ -85,8 +85,8 @@ noncomputable section
   tactics are the same thing: tactics write the term for you.
 
   Lean is its own implementation language. The elaborator, the tactics
-  and Mathlib are written in Lean, run by an **interpreter** (which
-  also executes `#eval`) or compiled to C — hence users can add
+  and Mathlib are written in Lean, run by an **interpreter** or
+  compiled to C — hence users can add
   notation, tactics, even elaboration rules, without touching the
   kernel.
 
@@ -175,17 +175,6 @@ noncomputable section
   proof is checking a type. Hence terms and tactics, below, are not
   really two things.
 -/
-
-/-
-  ## Lean also computes
-
-  Lean is a programming language too, so some expressions can simply be
-  run: `#eval e` computes the value of `e`. This is the interpreter
-  mentioned above — handy to check a definition against an example.
--/
-
-#eval 2 ^ 10                  -- 1024
-#eval (List.range 5).sum      -- 10
 
 /-
   # The shape of a statement
@@ -666,13 +655,11 @@ example {β : Type*} {f : α → β} (hf : Function.Injective f)
 #check (2 : ℝ)      -- ℝ
 #check (2 : ℤ)      -- ℤ
 
--- This matters, because ℕ-subtraction is *truncated* at zero:
-#eval (2 - 5 : ℕ)   -- 0, not -3
-#eval (2 - 5 : ℤ)   -- -3
-
--- The type ascription `(e : T)` is how you force a choice.
--- Here it changes the *statement*, not just its display:
+-- This matters, because ℕ-subtraction is *truncated* at zero.
+-- The type ascription `(e : T)` is how you force a choice, and here it
+-- changes the *statement*, not merely its display:
 example : (2 - 5 : ℕ) = 0 := by norm_num
+example : (2 - 5 : ℤ) = -3 := by norm_num
 
 /-
   `show` restates the goal in a definitionally equal form. It changes
