@@ -91,8 +91,21 @@ noncomputable section
   proof therefore cannot make Lean accept a false statement: it can
   only produce a term that the kernel rejects. Everything you trust is
   concentrated in one small, heavily scrutinised component — the
-  *trusted computing base*. Proof terms can even be exported and
-  re-checked by independently written checkers.
+  *trusted computing base*.
+
+  And you need not even trust that one. A proof term can be **exported**
+  and handed to a checker written by someone else, in another language,
+  from the specification of the theory alone. Several such checkers
+  exist, and the *Lean Kernel Arena* (https://arena.lean-lang.org)
+  collects them: more than a dozen independent implementations, run
+  against a common suite of test cases — proofs that must be accepted,
+  and invalid proofs that must be rejected. Agreement between
+  implementations that share no code is a much stronger guarantee than
+  the correctness of any single one of them.
+
+  This is the answer to the natural objection, "who checks the
+  checker?". Not a promise that the software is perfect: a design in
+  which being convinced does not require you to take anyone's word.
 
   This also explains something you will meet in a minute: why proofs
   written as terms and proofs written with tactics are the same thing.

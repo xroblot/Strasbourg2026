@@ -86,6 +86,19 @@ If the terminal is not visible, open one via the menu
   readable account of the pipeline.
   https://leanprover-community.github.io/lean4-metaprogramming-book/main/02_overview.html
 
+### Don't trust the kernel — check it yourself
+
+- **Lean Kernel Arena** — independent proof checkers, benchmarked against a
+  common test suite of proofs to accept and invalid proofs to reject. You can
+  write your own checker and submit it.
+  https://arena.lean-lang.org — sources: https://github.com/leanprover/lean-kernel-arena
+- **Validating a Lean Proof** — the official documentation on exporting a proof
+  and having it re-checked externally.
+  https://lean-lang.org/doc/reference/latest/ValidatingProofs/
+- **Who Watches the Provers?**, L. de Moura (2026) — why independent checking
+  matters, and how it is organised.
+  https://leodemoura.github.io/blog/2026-3-16-who-watches-the-provers/
+
 ## History and background
 
 - **The Proof in the Code: How a Truth Machine Is Transforming Math and AI**,
