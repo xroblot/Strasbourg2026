@@ -75,6 +75,17 @@ If the terminal is not visible, open one via the menu
 - **Natural Number Game** (interactive game):
   https://adam.math.hhu.de/#/g/leanprover-community/NNG4
 
+## How Lean works (architecture)
+
+- **The Lean 4 Theorem Prover and Programming Language**, L. de Moura and
+  S. Ullrich (CADE 2021) — the system description: parser, macro system,
+  elaborator, kernel, tactic framework, compiler. The primary source.
+  https://lean-lang.org/papers/lean4.pdf
+- **Metaprogramming in Lean 4**, community book — chapter "Overview" follows a
+  piece of code through `Syntax`, then `Expr`, then execution. The most
+  readable account of the pipeline.
+  https://leanprover-community.github.io/lean4-metaprogramming-book/main/02_overview.html
+
 ## History and background
 
 - **The Proof in the Code: How a Truth Machine Is Transforming Math and AI**,

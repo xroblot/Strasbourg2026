@@ -59,6 +59,64 @@ noncomputable section
 -/
 
 /-
+  ## How Lean is put together
+
+  It is worth knowing, in outline, what happens between the text you
+  type and the verdict you get. The claim "the machine checked it"
+  means something quite precise, and the precision is reassuring.
+
+  Your file goes through a pipeline:
+
+    source text
+       ↓  **parser**        — turns the text into a syntax tree,
+       ↓                      following the notation rules in scope
+       ↓  **macros**        — expand user-defined notation into
+       ↓                      more primitive syntax
+       ↓  **elaborator**    — turns syntax into a *term* of the core
+       ↓                      language: this is where implicit
+       ↓                      arguments are guessed, instances found,
+       ↓                      coercions inserted, `by` blocks run
+       ↓  **kernel**        — re-checks the finished term against the
+                              rules of the underlying type theory
+
+  Almost everything convenient about Lean lives in the **elaborator**.
+  It is a large, subtle piece of software. So are the tactics, and so
+  is Mathlib. And here is the point: *none of them has to be trusted*.
+
+  A tactic does not assert a theorem; it **builds a term**, and the
+  term is then handed to the kernel. The kernel is small, it
+  implements one fixed theory (the Calculus of Inductive
+  Constructions), and it knows nothing about tactics, notation or
+  instances. A bug in a tactic, in the elaborator, or in a Mathlib
+  proof therefore cannot make Lean accept a false statement: it can
+  only produce a term that the kernel rejects. Everything you trust is
+  concentrated in one small, heavily scrutinised component — the
+  *trusted computing base*. Proof terms can even be exported and
+  re-checked by independently written checkers.
+
+  This also explains something you will meet in a minute: why proofs
+  written as terms and proofs written with tactics are the same thing.
+  Tactics are simply programs that write the term for you.
+
+  One last component: Lean is its own implementation language. The
+  elaborator, the tactics and Mathlib are written in Lean, and run
+  either through an **interpreter** — that is what executes `#eval`,
+  and what runs your tactics as you type — or through a **compiler**
+  that emits C for released code. This is why users can add their own
+  notation, their own tactics, even their own elaboration rules,
+  without touching the kernel.
+
+  Two honest caveats. First, the kernel is small but not infallible;
+  soundness bugs have been found, and are treated as serious public
+  events. Second, and far more important in practice: the kernel
+  guarantees that *the statement you wrote* has been proved. It cannot
+  tell you that you wrote the statement you meant. Reading statements
+  carefully is, and remains, your job.
+
+  (References for this section are in `References.md`.)
+-/
+
+/-
   # What is Mathlib?
 
   A proof assistant on its own proves nothing interesting: you would
