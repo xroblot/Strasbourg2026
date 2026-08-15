@@ -89,9 +89,11 @@ If the terminal is not visible, open one via the menu
 ### Don't trust the kernel — check it yourself
 
 - **Lean Kernel Arena** — independent proof checkers, benchmarked against a
-  common test suite of proofs to accept and invalid proofs to reject. You can
-  write your own checker and submit it.
+  common test suite of proofs to accept and invalid proofs to reject.
   https://arena.lean-lang.org — sources: https://github.com/leanprover/lean-kernel-arena
+  The test suite is downloadable, and includes "tutorial" cases exercising one
+  feature of the type system at a time: the intended starting point if you want
+  to **write your own kernel** and submit it.
 - **Validating a Lean Proof** — the official documentation on exporting a proof
   and having it re-checked externally.
   https://lean-lang.org/doc/reference/latest/ValidatingProofs/

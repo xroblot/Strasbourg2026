@@ -103,9 +103,19 @@ noncomputable section
   implementations that share no code is a much stronger guarantee than
   the correctness of any single one of them.
 
+  And the argument has a last step, which is the one that really
+  settles the matter: **you can write your own kernel**. The export
+  format and the rules of the theory are documented, the Arena's test
+  suite can be downloaded — it even contains small "tutorial" cases
+  exercising one feature of the type system at a time, meant for
+  people developing a checker from scratch — and a working checker is
+  a program of a few thousand lines, which several people have written
+  as a personal project. If you accept a theorem because *your own*
+  checker accepts its proof term, you are trusting no one at all.
+
   This is the answer to the natural objection, "who checks the
   checker?". Not a promise that the software is perfect: a design in
-  which being convinced does not require you to take anyone's word.
+  which being convinced never requires you to take anyone's word.
 
   This also explains something you will meet in a minute: why proofs
   written as terms and proofs written with tactics are the same thing.
