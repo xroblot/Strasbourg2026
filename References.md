@@ -75,6 +75,14 @@ If the terminal is not visible, open one via the menu
 - **Natural Number Game** (interactive game):
   https://adam.math.hhu.de/#/g/leanprover-community/NNG4
 
+## History and background
+
+- **The Proof in the Code: How a Truth Machine Is Transforming Math and AI**,
+  Kevin Hartnett (Quanta Books, 2026) — the story of Lean and Mathlib, from a
+  code-checking project to a library that changed how part of the mathematical
+  community works. Journalism, not mathematics; no prerequisites.
+  https://www.quantabooks.org/books/the-proof-in-the-code/
+
 ## Community
 
 - **Zulip** (community forum): https://leanprover.zulipchat.com/

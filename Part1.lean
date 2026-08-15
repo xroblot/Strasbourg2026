@@ -25,88 +25,155 @@ import Mathlib.NumberTheory.FLT.Three
 noncomputable section
 
 /-
-  # First steps
+  # What is Lean?
 
-  Lean is a proof assistant: it checks that your proofs are correct.
+  Lean is a **proof assistant**: a language in which mathematical
+  statements and their proofs are written formally, and a program that
+  checks those proofs.
+
+  "Formally" means that a statement is not a sentence to be interpreted
+  by a benevolent reader, but an expression whose meaning is completely
+  determined by the rules of the language. And "checks" means what it
+  says: a small program, the *kernel*, verifies every single inference
+  against a fixed set of rules. It has no notion of what is obvious, no
+  willingness to grant you a step, and no bad days. If it accepts your
+  proof, the result follows from the axioms — full stop.
+
+  This is a trade. What you gain is certainty, and the ability to build
+  on other people's work without re-reading it. What you pay is that
+  everything must be said. Steps that a human reader grants you in
+  silence — "similarly", "without loss of generality", "clearly" —
+  have to be supplied. Much of the skill of formalizing lies in
+  recognising which of those silent steps are genuinely routine, and
+  which were hiding the actual content of the proof.
+
+  A second, less advertised benefit: because the machine understands
+  the statement, it can *help*. It tells you at every moment what
+  remains to be proved, it finds lemmas for you, and it discharges
+  routine goals by itself. Working in Lean feels much less like
+  dictating a proof to a machine than like having a conversation with
+  a very literal-minded colleague.
+
+  Lean is a full programming language as well, and it is used as one.
+  We will barely touch that side of it here.
 -/
 
--- `#check` displays the type of an expression
--- (Lean checks types in real time)
+/-
+  # What is Mathlib?
+
+  A proof assistant on its own proves nothing interesting: you would
+  have to build the real numbers before you could state that a
+  continuous function on a closed interval is bounded.
+
+  **Mathlib** is the answer to that problem. It is a single, unified
+  library of formalized mathematics, built by the Lean community over
+  the last several years — well over a million lines, hundreds of
+  contributors, and a review process that every addition goes through.
+  It covers a great deal of an undergraduate and graduate curriculum:
+  algebra, topology, analysis, measure theory, category theory, number
+  theory, and more.
+
+  Two features matter more than its size.
+
+  First, it is **unified**. There is one notion of group, one notion of
+  topological space, one notion of limit, and everything is built on
+  top of them. A theorem about compact spaces applies to the closed
+  interval because the closed interval is known to be compact, in the
+  same library, with no translation layer. This is what makes it
+  possible to state a new result in a few lines: the vocabulary is
+  already there.
+
+  Second, it is **general**. Results are stated in the natural
+  generality — often more general than the version you were taught.
+  This is occasionally disconcerting: looking for "the product of two
+  continuous functions is continuous", you find a statement about
+  topological semirings. Learning to read that generality, and to see
+  your own special case inside it, is a large part of learning Mathlib.
+
+  So this course is really about two things: the language, and the
+  library. The language can be learned in a few hours. The library is
+  the work of a career — but finding your way around it is a skill you
+  can start acquiring today, and we will spend real time on it.
+
+  **How all this came about.** The story of Lean and of Mathlib — from
+  a code-checking project at Microsoft Research to a library that has
+  changed how a part of the mathematical community works — is told at
+  book length in Kevin Hartnett, *The Proof in the Code: How a Truth
+  Machine Is Transforming Math and AI* (Quanta Books, 2026). It is
+  journalism rather than mathematics, and it requires nothing of what
+  we do here; read it for the history and the people.
+-/
+
+/-
+  # Everything has a type
+
+  Lean's basic discipline is that every expression has exactly one
+  **type**, known at the time the expression is elaborated. `2` is a
+  natural number, `ℝ` is a type, `Nat.add_comm` is a proof.
+
+  Two commands let you interrogate this:
+  * `#check e` displays the type of `e`;
+  * `#eval e` computes the value of `e`, when it can be computed.
+
+  Try moving your cursor onto the lines below, and watch the panel on
+  the right.
+-/
+
+-- The type of a theorem *is* its statement — a proof is a term
+-- whose type is the thing proved. More on this in a moment.
 #check Nat.add_comm   -- ∀ (n m : ℕ), n + m = m + n
 
--- `#eval` evaluates an expression
 #eval 2 ^ 10          -- 1024
 
 /-
-  ## Keyboard shortcuts
+  # The shape of a statement
 
-  | Shortcut      | Symbol  | Shortcut      | Symbol  |
-  |---------------|---------|---------------|---------|
-  | `\to`         |   `→`   | `\iff`        |   `↔`   |
-  | `\and`        |   `∧`   | `\or`         |   `∨`   |
-  | `\not`        |   `¬`   | `\ne`         |   `≠`   |
-  | `\forall`     |   `∀`   | `\exists`     |   `∃`   |
-  | `\<`          |   `⟨`   | `\>`          |   `⟩`   |
-  | `\in`         |   `∈`   | `\notin`      |   `∉`   |
-  | `\sub`        |   `⊆`   | `\|`          |   `∣`   |
-  | `\union`      |   `∪`   | `\inter`      |   `∩`   |
-  | `\N`          |   `ℕ`   | `\Z`          |   `ℤ`   |
-  | `\R`          |   `ℝ`   | `\C`          |   `ℂ`   |
-  | `\alpha`      |   `α`   | `\beta`       |   `β`   |
-  | `\smul`       |   `•`   | `\le`         |   `≤`   |
-  | `\-1`         |   `⁻¹`  | `\comp`       |   `∘`   |
-  | `\mapsto`     |   `↦`   | `\cdot`       |   `·`   |
-  | `\[[`         |   `⟦`   | `\]]`         |   `⟧`   |
--/
-
-/-
-  ## Lean syntax at a glance
-
-  Every theorem in this file has the following shape:
+  Every result in this file has the following shape:
 
     theorem my_theorem (h₁ : Hypothesis₁) (h₂ : Hypothesis₂) : Conclusion := by
       tactic₁    -- transforms the goal
       tactic₂    -- ...
       ...
 
-  For a nameless result: `example : Conclusion := by ...`
+  Read it as: *under the hypotheses h₁ and h₂, the conclusion holds,
+  and here is why*. Everything before the colon is what you are given;
+  what follows the colon is what you must establish; and what follows
+  `:=` is the proof itself. When the result does not need a name, write
+  `example : Conclusion := by ...` — we use this constantly below.
 
-  Reading a signature:
+  **Terms versus tactics.**
+  A proof can be written in two styles. As a *term*: a direct
+  expression whose type is the statement, as in `mul_comm a b`. Or in
+  *tactic mode*, after `by`: a sequence of instructions, each
+  transforming the goal until nothing is left. The two are equivalent —
+  tactic mode simply builds the term for you, step by step — and one
+  often writes proofs whose overall shape is tactic mode with small
+  terms inside.
 
-  | Notation     | Meaning                                                        |
-  |--------------|----------------------------------------------------------------|
-  | `(h : P)`   | explicit argument named `h` of type `P`                       |
-  | `{h : P}`   | implicit argument (Lean infers it from context)                |
-  | `[inst : C]`| type-class instance (e.g. `[Group G]` = "G has a group        |
-  |              | structure", looked up automatically by Lean)                   |
-  | `h : P ⊢ Q` | in the Infoview: hypothesis `h : P`, goal to prove is `Q`     |
-
-  The `variable` command at the top of a section declares variables
-  in scope. They are silently added to any `example` or `theorem`
-  that uses them.
-
-  **Terms vs tactics.**
-  A proof can be written as a *term* (a direct expression of the right
-  type) or in *tactic mode* (after `by`). In tactic mode, tactics
-  transform the goal step by step. Both styles are equivalent — tactic
-  mode is usually more readable.
+  The `variable` command declares variables shared by several
+  statements. They are added silently to any `example` or `theorem`
+  that mentions them.
 -/
 
 /-
   ## Reading a Mathlib statement
 
-  The three kinds of brackets above are not cosmetic: they decide what
-  *you* have to supply and what Lean works out on its own.
+  In a signature, three kinds of brackets appear, and they decide what
+  *you* must supply and what Lean works out on its own.
 
-  * `(a b : G)` — **explicit**: you write them.
-  * `{G : Type*}` — **implicit**: Lean reads them off the other
-    arguments. Here `G` is determined as soon as it sees `a`.
-  * `[CommMagma G]` — **instance**: Lean searches its database of
-    known structures. This is what makes `mul_comm` work for `ℤ`,
-    for `ℝ`, for a polynomial ring… without you saying which.
+  | Notation      | Meaning                                             |
+  |---------------|-----------------------------------------------------|
+  | `(a b : G)`   | **explicit** — you write them                       |
+  | `{G : Type*}` | **implicit** — Lean infers them from the context    |
+  | `[CommMagma G]` | **instance** — Lean looks it up in its database   |
 
-  Prefixing a name with `@` switches *everything* to explicit — handy
-  when Lean guesses wrong, and to see what is really going on.
+  The instance brackets are the mechanism behind the generality
+  discussed above: `[Group G]` reads "G is equipped with a group
+  structure", and Lean finds that structure by itself, whether `G` is
+  `ℤ`, a matrix group, or the units of a ring.
+
+  Prefixing a name with `@` makes *everything* explicit — useful when
+  Lean guesses wrong, and to see what is really going on.
 -/
 
 -- Compare the two: `@` reveals the hidden arguments
@@ -126,54 +193,104 @@ example {α β : Type} {f : α → β} (hf : Function.Injective f)
     (a b : α) (hab : f a = f b) : a = b := hf hab
 
 /-
-  ⚠ **Pedagogical note** ⚠
+  # The Infoview: reading the proof state
 
-  Most exercises in this tutorial could be solved in *one line* by
-  a single Mathlib lemma (which `exact?` often finds on its own), or
-  even by an automation tactic such as `simp`, `tauto` or `aesop`.
-  That is not the point!
+  This is the single most important habit to acquire. The panel on the
+  right — the **Infoview** — shows, at the position of your cursor,
+  exactly where the proof stands: the hypotheses currently available,
+  and the goal that remains. A proof is a journey through these states,
+  and the Infoview is the map.
 
-  The goal here is to build proofs *step by step*, by hand, to get
-  familiar with the basic tactics. The hints provided therefore
-  deliberately point to *intermediate* lemmas, not to the one that
-  closes the goal directly.
+  If you do not see it: command palette (`Ctrl/Cmd+Shift+P`)
+  → "Lean 4: Toggle Infoview".
 
-  (The only exception is the section "Searching Mathlib", where the
-  whole game is precisely to track down the right lemma.)
+  The display has two parts, separated by the turnstile `⊢`:
+
+    P Q R : Prop      ← what is in scope, and what you may use
+    hP : P            ← a hypothesis, with the name you gave it
+    ⊢ P               ← the goal: what remains to be proved
+
+  Place your cursor just after `intro hP` in the proof below, then just
+  after `exact hP`, and watch the state change. Do this constantly: the
+  question "what does the Infoview say?" answers most difficulties.
 -/
 
-/-
-  ## How to work on this file
-
-  - **The Infoview** (panel on the right) shows the *proof state* at
-    the cursor: the hypotheses above, the current goal below `⊢`.
-    If you don't see it: Command palette (Ctrl/Cmd+Shift+P)
-    → "Lean 4: Toggle Infoview".
-  - Each exercise has a proof that is just `sorry`.
-    **Replace `sorry`** with your own proof, one tactic at a time,
-    watching the goal change in the Infoview.
-  - The proof is complete when the Infoview shows **"No goals"** and
-    the yellow warning on `sorry` disappears.
-    A red underline means an error — hover to read the message.
-  - A bullet `·` focuses on a single subgoal (e.g. after `constructor`).
-  - **Hover** over any name to see its type and documentation.
-
-  **Reading the Infoview — concrete example.**
-  Place the cursor just after `intro hP` in the proof below.
-  The Infoview shows three blocks:
-
-    P Q R : Prop      ← variables in scope (declared with `variable`)
-    hP : P            ← hypothesis added by `intro hP`
-    ⊢ P               ← current goal: what remains to prove
-
-  After `exact hP`, the Infoview shows "No goals" — proof done.
-  Try it: move the cursor between the two lines to watch the state evolve.
--/
-
--- (example for the Infoview walkthrough — self-contained, try placing your cursor here)
+-- (self-contained — try placing your cursor on each line in turn)
 example (P : Prop) : P → P := by
   intro hP    -- ← cursor here → Infoview: P : Prop / hP : P / ⊢ P
   exact hP    -- ← cursor here → Infoview: No goals
+
+/-
+  Two things to know while Lean is thinking. Orange or yellow bars in
+  the left margin mean the file is still being processed — nothing is
+  wrong, Lean is simply working; wait for them to clear before trusting
+  what you see. And a red underline is an error: hover over it to read
+  the message, which is usually more helpful than it first appears.
+-/
+
+/-
+  # How to work on this file
+
+  The exercises are the occurrences of `sorry`, grouped in blocks
+  marked `/- TODO -/ … /- END TODO -/`.
+
+  `sorry` is a tactic that closes any goal without proving it. It is
+  how one leaves a hole on purpose — and Lean flags every such hole
+  with a warning, so nothing is ever silently assumed.
+
+  - **Replace `sorry`** with your own proof, one tactic at a time,
+    watching the goal change in the Infoview.
+  - The proof is complete when the Infoview shows **"No goals"** and
+    the warning on `sorry` disappears.
+  - A bullet `·` focuses on a single subgoal — for instance after
+    `constructor`, which splits a conjunction in two.
+  - **Hover** over any name to see its type and its documentation.
+
+  Solutions to every exercise are in the `Solutions/` directory.
+-/
+
+/-
+  ⚠ **A word on how to solve the exercises** ⚠
+
+  Most exercises below could be closed in one line by a single Mathlib
+  lemma — which `exact?` will often find for you — or by an automation
+  tactic such as `simp`, `tauto` or `aesop`.
+
+  That is not the point. The goal here is to build proofs *by hand*,
+  step by step, to get a feel for what the basic tactics do. The hints
+  therefore deliberately point at *intermediate* lemmas, never at the
+  one that closes the goal.
+
+  (The one exception is the section "Searching Mathlib" in Part 2,
+  where tracking down the right lemma is precisely the exercise.)
+-/
+
+/-
+  ## Keyboard shortcuts — reference
+
+  Unicode is entered by typing a backslash sequence followed by space
+  or tab. You do not need to memorise this table; come back to it.
+
+  | Shortcut      | Symbol  | Shortcut      | Symbol  |
+  |---------------|---------|---------------|---------|
+  | `\to`         |   `→`   | `\iff`        |   `↔`   |
+  | `\and`        |   `∧`   | `\or`         |   `∨`   |
+  | `\not`        |   `¬`   | `\ne`         |   `≠`   |
+  | `\forall`     |   `∀`   | `\exists`     |   `∃`   |
+  | `\<`          |   `⟨`   | `\>`          |   `⟩`   |
+  | `\in`         |   `∈`   | `\notin`      |   `∉`   |
+  | `\sub`        |   `⊆`   | `\|`          |   `∣`   |
+  | `\union`      |   `∪`   | `\inter`      |   `∩`   |
+  | `\N`          |   `ℕ`   | `\Z`          |   `ℤ`   |
+  | `\R`          |   `ℝ`   | `\C`          |   `ℂ`   |
+  | `\alpha`      |   `α`   | `\beta`       |   `β`   |
+  | `\smul`       |   `•`   | `\le`         |   `≤`   |
+  | `\-1`         |   `⁻¹`  | `\comp`       |   `∘`   |
+  | `\mapsto`     |   `↦`   | `\cdot`       |   `·`   |
+  | `\[[`         |   `⟦`   | `\]]`         |   `⟧`   |
+
+  Hovering over a symbol also tells you how to type it.
+-/
 
 /-
   # Propositions and proofs
