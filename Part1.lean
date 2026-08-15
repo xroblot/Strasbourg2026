@@ -162,7 +162,8 @@ noncomputable section
 #check ∀ n : ℕ, n + 0 = n     -- Prop
 
 -- … and a *proof* is an expression whose type is the statement proved.
--- This is the single most important idea in Lean.
+-- Propositions as types, proofs as terms: this identification
+-- (Curry–Howard) is what Lean is built on.
 #check Nat.add_comm           -- ∀ (n m : ℕ), n + m = m + n
 #check Nat.add_comm 2 3       -- 2 + 3 = 3 + 2
 
