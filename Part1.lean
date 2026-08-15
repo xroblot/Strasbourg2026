@@ -24,177 +24,123 @@ import Mathlib.NumberTheory.FLT.Three
 
 noncomputable section
 
+
 /-
   # What is Lean?
 
-  Lean is a **proof assistant**: a language in which mathematical
-  statements and their proofs are written formally, and a program that
-  checks those proofs.
+  Lean is a **proof assistant**: a language in which statements and
+  proofs are written formally, and a program that checks them.
 
-  "Formally" means that a statement is not a sentence to be interpreted
-  by a benevolent reader, but an expression whose meaning is completely
-  determined by the rules of the language. And "checks" means what it
-  says: a small program, the *kernel*, verifies every single inference
-  against a fixed set of rules. It has no notion of what is obvious, no
-  willingness to grant you a step, and no bad days. If it accepts your
-  proof, the result follows from the axioms — full stop.
+  *Formally* means a statement is not a sentence for a benevolent
+  reader to interpret, but an expression whose meaning is fixed by the
+  rules of the language. *Checks* means a small program — the
+  **kernel** — verifies every inference. It has no notion of what is
+  obvious, and no bad days.
 
-  This is a trade. What you gain is certainty, and the ability to build
-  on other people's work without re-reading it. What you pay is that
-  everything must be said. Steps that a human reader grants you in
-  silence — "similarly", "without loss of generality", "clearly" —
-  have to be supplied. Much of the skill of formalizing lies in
-  recognising which of those silent steps are genuinely routine, and
-  which were hiding the actual content of the proof.
+  The trade: you gain certainty, and the right to build on other
+  people's work without re-reading it; you pay by having to say
+  everything. "Similarly", "without loss of generality" and "clearly"
+  must all be supplied. Much of the skill of formalizing is telling
+  which of those silent steps are routine, and which were hiding the
+  content of the proof.
 
-  A second, less advertised benefit: because the machine understands
-  the statement, it can *help*. It tells you at every moment what
-  remains to be proved, it finds lemmas for you, and it discharges
-  routine goals by itself. Working in Lean feels much less like
-  dictating a proof to a machine than like having a conversation with
-  a very literal-minded colleague.
-
-  Lean is a full programming language as well, and it is used as one.
-  We will barely touch that side of it here.
+  In exchange the machine understands the statement, so it can help:
+  it shows what remains to be proved, finds lemmas, and closes routine
+  goals by itself.
 -/
 
 /-
   ## How Lean is put together
 
-  It is worth knowing, in outline, what happens between the text you
-  type and the verdict you get. The claim "the machine checked it"
-  means something quite precise, and the precision is reassuring.
-
-  Your file goes through a pipeline:
+  What happens between the text you type and the verdict:
 
     source text
-       ↓  **parser**        — turns the text into a syntax tree,
-       ↓                      following the notation rules in scope
-       ↓  **macros**        — expand user-defined notation into
-       ↓                      more primitive syntax
-       ↓  **elaborator**    — turns syntax into a *term* of the core
-       ↓                      language: this is where implicit
-       ↓                      arguments are guessed, instances found,
-       ↓                      coercions inserted, `by` blocks run
-       ↓  **kernel**        — re-checks the finished term against the
-                              rules of the underlying type theory
+       ↓  **parser**       — text to syntax tree
+       ↓  **macros**       — expand notation
+       ↓  **elaborator**   — syntax to a term of the core language:
+       ↓                     implicit arguments, instances, coercions,
+       ↓                     and running `by` blocks
+       ↓  **kernel**       — re-checks the finished term
 
-  Almost everything convenient about Lean lives in the **elaborator**.
-  It is a large, subtle piece of software. So are the tactics, and so
-  is Mathlib. And here is the point: *none of them has to be trusted*.
+  Everything convenient lives in the **elaborator** — a large, subtle
+  piece of software, as are the tactics and Mathlib. The point: *none
+  of them has to be trusted*. A tactic does not assert a theorem, it
+  **builds a term**, which the kernel then re-checks. A bug in a
+  tactic, in the elaborator or in a Mathlib proof cannot make Lean
+  accept a false statement; it can only produce a term the kernel
+  rejects.
 
-  A tactic does not assert a theorem; it **builds a term**, and the
-  term is then handed to the kernel. The kernel is small, it
-  implements one fixed theory (the Calculus of Inductive
-  Constructions), and it knows nothing about tactics, notation or
-  instances. A bug in a tactic, in the elaborator, or in a Mathlib
-  proof therefore cannot make Lean accept a false statement: it can
-  only produce a term that the kernel rejects. Everything you trust is
-  concentrated in one small, heavily scrutinised component — the
-  *trusted computing base*.
+  Nor need you trust the kernel. Proof terms can be **exported** and
+  checked by programs written elsewhere, in other languages: the *Lean
+  Kernel Arena* (https://arena.lean-lang.org) runs more than a dozen
+  independent checkers against a common suite — proofs to accept, and
+  invalid proofs to reject. Better still, **you can write your own
+  kernel**: the format is documented, the test suite downloadable, a
+  checker a few thousand lines. Accept a theorem because *your* checker
+  accepts it, and you are trusting no one at all. That is the answer to
+  "who checks the checker?" — not perfect software, but a design in
+  which conviction never rests on anyone's word.
 
-  And you need not even trust that one. A proof term can be **exported**
-  and handed to a checker written by someone else, in another language,
-  from the specification of the theory alone. Several such checkers
-  exist, and the *Lean Kernel Arena* (https://arena.lean-lang.org)
-  collects them: more than a dozen independent implementations, run
-  against a common suite of test cases — proofs that must be accepted,
-  and invalid proofs that must be rejected. Agreement between
-  implementations that share no code is a much stronger guarantee than
-  the correctness of any single one of them.
+  It also explains why proofs written as terms and proofs written with
+  tactics are the same thing: tactics write the term for you.
 
-  And the argument has a last step, which is the one that really
-  settles the matter: **you can write your own kernel**. The export
-  format and the rules of the theory are documented, the Arena's test
-  suite can be downloaded — it even contains small "tutorial" cases
-  exercising one feature of the type system at a time, meant for
-  people developing a checker from scratch — and a working checker is
-  a program of a few thousand lines, which several people have written
-  as a personal project. If you accept a theorem because *your own*
-  checker accepts its proof term, you are trusting no one at all.
+  Lean is its own implementation language. The elaborator, the tactics
+  and Mathlib are written in Lean, run by an **interpreter** (which
+  also executes `#eval`) or compiled to C — hence users can add
+  notation, tactics, even elaboration rules, without touching the
+  kernel.
 
-  This is the answer to the natural objection, "who checks the
-  checker?". Not a promise that the software is perfect: a design in
-  which being convinced never requires you to take anyone's word.
+  Two caveats. The kernel is small but not infallible: soundness bugs
+  have been found, and are treated as serious public events. And, far
+  more important in practice, the kernel guarantees that *the statement
+  you wrote* was proved — not that you wrote the statement you meant.
+  Reading statements carefully remains your job.
 
-  This also explains something you will meet in a minute: why proofs
-  written as terms and proofs written with tactics are the same thing.
-  Tactics are simply programs that write the term for you.
-
-  One last component: Lean is its own implementation language. The
-  elaborator, the tactics and Mathlib are written in Lean, and run
-  either through an **interpreter** — that is what executes `#eval`,
-  and what runs your tactics as you type — or through a **compiler**
-  that emits C for released code. This is why users can add their own
-  notation, their own tactics, even their own elaboration rules,
-  without touching the kernel.
-
-  Two honest caveats. First, the kernel is small but not infallible;
-  soundness bugs have been found, and are treated as serious public
-  events. Second, and far more important in practice: the kernel
-  guarantees that *the statement you wrote* has been proved. It cannot
-  tell you that you wrote the statement you meant. Reading statements
-  carefully is, and remains, your job.
-
-  (References for this section are in `References.md`.)
+  (References in `References.md`.)
 -/
 
 /-
   # What is Mathlib?
 
-  A proof assistant on its own proves nothing interesting: you would
-  have to build the real numbers before you could state that a
-  continuous function on a closed interval is bounded.
+  A proof assistant alone proves nothing interesting: you would have to
+  build the real numbers before stating that a continuous function on a
+  closed interval is bounded.
 
-  **Mathlib** is the answer to that problem. It is a single, unified
-  library of formalized mathematics, built by the Lean community over
-  the last several years — well over a million lines, hundreds of
-  contributors, and a review process that every addition goes through.
-  It covers a great deal of an undergraduate and graduate curriculum:
-  algebra, topology, analysis, measure theory, category theory, number
-  theory, and more.
+  **Mathlib** is the community's answer: one unified library of
+  formalized mathematics — well over a million lines, hundreds of
+  contributors, every addition reviewed — covering much of an
+  undergraduate and graduate curriculum.
 
   Two features matter more than its size.
 
-  First, it is **unified**. There is one notion of group, one notion of
-  topological space, one notion of limit, and everything is built on
-  top of them. A theorem about compact spaces applies to the closed
-  interval because the closed interval is known to be compact, in the
-  same library, with no translation layer. This is what makes it
-  possible to state a new result in a few lines: the vocabulary is
-  already there.
+  It is **unified**: one notion of group, of topological space, of
+  limit, everything built on them. A theorem about compact spaces
+  applies to a closed interval because that interval is known to be
+  compact, in the same library, with no translation layer. Hence a new
+  statement takes a few lines — the vocabulary is already there.
 
-  Second, it is **general**. Results are stated in the natural
-  generality — often more general than the version you were taught.
-  This is occasionally disconcerting: looking for "the product of two
+  It is **general**: results are stated in their natural generality,
+  often beyond the version you were taught. Looking for "a product of
   continuous functions is continuous", you find a statement about
-  topological semirings. Learning to read that generality, and to see
-  your own special case inside it, is a large part of learning Mathlib.
+  topological semirings. Reading that generality, and locating your own
+  case inside it, is much of what learning Mathlib means.
 
-  So this course is really about two things: the language, and the
-  library. The language can be learned in a few hours. The library is
-  the work of a career — but finding your way around it is a skill you
-  can start acquiring today, and we will spend real time on it.
+  So this course is about two things. The language takes a few hours;
+  the library is the work of a career — but finding your way around it
+  is a skill you can start acquiring today.
 
-  **How all this came about.** The story of Lean and of Mathlib — from
-  a code-checking project at Microsoft Research to a library that has
-  changed how a part of the mathematical community works — is told at
-  book length in Kevin Hartnett, *The Proof in the Code: How a Truth
-  Machine Is Transforming Math and AI* (Quanta Books, 2026). It is
-  journalism rather than mathematics, and it requires nothing of what
-  we do here; read it for the history and the people.
+  **History.** Kevin Hartnett, *The Proof in the Code: How a Truth
+  Machine Is Transforming Math and AI* (Quanta Books, 2026) tells the
+  story of Lean and Mathlib. Journalism, no prerequisites.
 -/
 
 /-
   # Everything has a type
 
-  Lean's basic discipline is that every expression has exactly one
-  **type**, fixed when the expression is elaborated. The command
-  `#check e` displays the type of `e`; use it constantly.
-
-  What is striking is how far the idea is pushed. Numbers have types,
-  of course. But so do types themselves; so do functions; so do
-  statements; and so do *proofs*. Everything below is one language.
+  Every expression has exactly one **type**, fixed when it is
+  elaborated; `#check e` displays it. What is striking is how far the
+  idea goes: types themselves, functions, statements and *proofs* all
+  have types, in one and the same language.
 -/
 
 -- Ordinary values
@@ -207,7 +153,7 @@ noncomputable section
 #check ℝ → ℝ                   -- Type
 
 -- Functions
-#check fun n : ℕ ↦ n + 1     -- ℕ → ℕ
+#check fun n : ℕ ↦ n + 1      -- ℕ → ℕ
 #check Nat.succ               -- ℕ → ℕ
 
 -- Statements: a *statement* is an expression of type `Prop`…
@@ -221,15 +167,13 @@ noncomputable section
 #check Nat.add_comm 2 3       -- 2 + 3 = 3 + 2
 
 /-
-  Read those last two lines again. `Nat.add_comm` is not a label
-  attached to a theorem stored elsewhere: it *is* the proof, and its
-  type is the statement. Applying it to `2` and `3`, as one applies a
-  function to arguments, yields a proof of the particular instance.
+  `Nat.add_comm` is not a label pointing at a theorem stored elsewhere:
+  it *is* the proof, and its type is the statement. Applied to `2` and
+  `3` like a function, it yields a proof of that instance.
 
-  So "having a proof of P" and "having a term of type P" are the same
-  thing, and the kernel's job — checking a proof — is exactly its job
-  of checking a type. This is why the two styles announced below,
-  terms and tactics, are not really two things.
+  So "having a proof of P" is "having a term of type P", and checking a
+  proof is checking a type. Hence terms and tactics, below, are not
+  really two things.
 -/
 
 /-
