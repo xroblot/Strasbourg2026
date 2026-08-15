@@ -93,6 +93,39 @@ noncomputable section
 -/
 
 /-
+  ## Reading a Mathlib statement
+
+  The three kinds of brackets above are not cosmetic: they decide what
+  *you* have to supply and what Lean works out on its own.
+
+  * `(a b : G)` — **explicit**: you write them.
+  * `{G : Type*}` — **implicit**: Lean reads them off the other
+    arguments. Here `G` is determined as soon as it sees `a`.
+  * `[CommMagma G]` — **instance**: Lean searches its database of
+    known structures. This is what makes `mul_comm` work for `ℤ`,
+    for `ℝ`, for a polynomial ring… without you saying which.
+
+  Prefixing a name with `@` switches *everything* to explicit — handy
+  when Lean guesses wrong, and to see what is really going on.
+-/
+
+-- Compare the two: `@` reveals the hidden arguments
+#check mul_comm
+#check @mul_comm
+
+-- In everyday use you only write the explicit ones
+example (a b : ℤ) : a * b = b * a := mul_comm a b
+
+-- The same proof with every argument spelled out.
+-- `_` asks Lean to fill in the instance itself
+example (a b : ℤ) : a * b = b * a := @mul_comm ℤ _ a b
+
+-- Implicit arguments are recovered from the *other* arguments:
+-- in `hab : f a = f b`, Lean reads off `α`, `β` and `f`
+example {α β : Type} {f : α → β} (hf : Function.Injective f)
+    (a b : α) (hab : f a = f b) : a = b := hf hab
+
+/-
   ⚠ **Pedagogical note** ⚠
 
   Most exercises in this tutorial could be solved in *one line* by
@@ -459,6 +492,147 @@ example {β : Type*} (f : α → β) (s t : Set β) :
 --   then `hf` and `subst`
 example {β : Type*} {f : α → β} (hf : Function.Injective f)
     (s t : Set α) : f '' (s ∩ t) = f '' s ∩ f '' t := by
+  sorry
+
+/- END TODO -/
+
+/-
+  # Types, coercions and subtypes
+
+  Everything in Lean has exactly one type, and Lean is strict about it.
+  This section collects the three things that surprise newcomers most:
+  how a numeral gets its type, how Lean moves between `ℕ`, `ℤ`, `ℝ`,
+  and how one carries a property around with an element.
+-/
+
+/-
+  ## Strict typing and elaboration
+
+  A numeral such as `2` has no intrinsic type: Lean *elaborates* it,
+  that is, it decides the type from the context. With no constraint
+  at all, the default is `ℕ`.
+-/
+
+#check 2            -- ℕ
+#check (2 : ℝ)      -- ℝ
+#check (2 : ℤ)      -- ℤ
+
+-- This matters, because ℕ-subtraction is *truncated* at zero:
+#eval (2 - 5 : ℕ)   -- 0, not -3
+#eval (2 - 5 : ℤ)   -- -3
+
+-- The type ascription `(e : T)` is how you force a choice.
+-- Here it changes the *statement*, not just its display:
+example : (2 - 5 : ℕ) = 0 := by norm_num
+
+/-
+  `show` restates the goal in a definitionally equal form. It changes
+  nothing mathematically, but it lets you say what you mean.
+-/
+example (n : ℕ) : n + 0 = n := by
+  show n + 0 = n
+  simp
+
+/-
+  ## Coercions: the `↑` arrow
+
+  Lean does not silently identify `ℕ` with `ℝ`. Instead it inserts a
+  *coercion*, displayed `↑n` (here `Nat.cast n`). So in `(n : ℕ)` and
+  `x + n` with `x : ℝ`, what is really written is `x + ↑n`.
+-/
+
+example (n : ℕ) (x : ℝ) : ℝ := x + n     -- really `x + ↑n`
+
+#check fun (n : ℕ) => (n : ℝ)            -- ℕ → ℝ, i.e. `Nat.cast`
+
+/-
+  Two tactics do the bookkeeping:
+  * `push_cast` pushes coercions *towards the leaves*
+    (`↑(a + b)` becomes `↑a + ↑b`);
+  * `norm_cast` normalises them and tries to close the goal;
+    `exact_mod_cast h` is `exact h` up to coercions.
+-/
+
+example (n m : ℕ) : ((n + m : ℕ) : ℝ) = (n : ℝ) + (m : ℝ) := by
+  push_cast
+  ring
+
+-- ⚠ Coercion does *not* commute with ℕ-subtraction without a hypothesis:
+-- `↑(n - m) = ↑n - ↑m` is false in general (take n = 2, m = 5).
+
+/-
+  ## `↑` versus `⇑`
+
+  There is a second arrow. A *bundled* morphism, say `f : G →* H`, is
+  not a function: it is a structure packaging a function together with
+  the proof that it preserves multiplication. Writing `f x` silently
+  applies the coercion-to-function `⇑f`.
+
+  Rule of thumb: `↑` coerces a *value* to another type, `⇑` coerces a
+  *bundled object* to the function it contains.
+-/
+
+example {G H : Type*} [Group G] [Group H] (f : G →* H) (x y : G) :
+    f (x * y) = f x * f y :=
+  f.map_mul x y
+
+/-
+  ## Subtypes
+
+  `{x : α // p x}` is the type of elements of `α` satisfying `p`.
+  One of its terms is a *pair*: a value and a proof.
+  * `x.val` (also written `↑x`) is the underlying element;
+  * `x.property` is the proof that it satisfies `p`.
+-/
+
+-- The positive naturals
+#check ({ n : ℕ // 0 < n })
+
+example (x : { n : ℕ // 0 < n }) : 0 < x.val := x.property
+
+-- Building a term: give the value and the proof
+example : { n : ℕ // 0 < n } := ⟨1, Nat.one_pos⟩
+
+/-
+  ## Proof irrelevance
+
+  In Lean, any two proofs of the same proposition are *equal* — and
+  equal by definition, so `rfl` proves it.
+-/
+
+example (p : Prop) (h₁ h₂ : p) : h₁ = h₂ := rfl
+
+/-
+  This is exactly what makes subtypes usable: to prove that two terms
+  of `{x : α // p x}` are equal, only the values matter, since the
+  proof components are automatically equal. That is `Subtype.ext`.
+-/
+
+example (x y : { n : ℕ // 0 < n }) (h : x.val = y.val) : x = y :=
+  Subtype.ext h
+
+/- TODO -/
+
+-- Casts commute with multiplication.
+-- Hint: push the coercions towards the leaves, then finish with `ring`
+example (n m : ℕ) : ((n * m : ℕ) : ℝ) = (n : ℝ) * (m : ℝ) := by
+  sorry
+
+-- With a hypothesis, subtraction does survive the cast.
+-- Hint: ℕ-subtraction is truncated, so `h` has to be used;
+--   look for the cast lemma for `-` that takes such a hypothesis
+example (n : ℕ) (h : 5 ≤ n) : ((n - 5 : ℕ) : ℤ) = (n : ℤ) - 5 := by
+  sorry
+
+-- Two positive naturals with the same value are equal.
+-- Hint: only the values matter — the proof components are equal
+--   for free (proof irrelevance)
+example (x y : { n : ℕ // 0 < n }) (h : (x : ℕ) = (y : ℕ)) : x = y := by
+  sorry
+
+-- A function cannot distinguish two proofs of the same proposition.
+-- Hint: no lemma needed here — think about what `rfl` can already do
+example (p : Prop) (f : p → ℕ) (h₁ h₂ : p) : f h₁ = f h₂ := by
   sorry
 
 /- END TODO -/

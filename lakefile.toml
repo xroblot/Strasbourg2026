@@ -16,15 +16,18 @@ name = "Part2"
 [[lean_lib]]
 name = "Part3"
 
-# The solution files are withheld until after the course: they are kept locally
-# but excluded by .gitignore, so their lean_lib targets are commented out to
-# keep `lake build` working on a fresh clone. Restore all of this after the
-# school (and add them back to defaultTargets).
-# [[lean_lib]]
-# name = "Part1Solutions"
-#
-# [[lean_lib]]
-# name = "Part2Solutions"
-#
-# [[lean_lib]]
-# name = "Part3Solutions"
+# The solutions live in `Solutions/`. They are declared so that they can be
+# built and checked, but are kept out of `defaultTargets`: a plain `lake build`
+# only compiles the worksheets.
+
+[[lean_lib]]
+name = "Part1Solutions"
+srcDir = "Solutions"
+
+[[lean_lib]]
+name = "Part2Solutions"
+srcDir = "Solutions"
+
+[[lean_lib]]
+name = "Part3Solutions"
+srcDir = "Solutions"

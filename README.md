@@ -27,4 +27,4 @@ local installation as an alternative, and for links to further resources.
 | `References.md` | Setup instructions and pointers to books, tools and the community. |
 | `abstract.md` | Abstract of the course. |
 
-Solutions will be added to this repository after the school.
+The solutions are in the `Solutions/` directory, one file per worksheet.
