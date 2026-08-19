@@ -30,41 +30,96 @@ noncomputable section
 /-
   # Algebraic structures
 
-  Lean/Mathlib represents algebraic structures with **type classes**.
-  For instance, writing `[Group G]` means
-  "G is equipped with a group structure".
+  Mathlib describes algebraic structures with **type classes**. We start
+  with how that machinery works, because it is what makes the library
+  usable: it is the reason one lemma about commutative multiplication
+  applies to ℕ, to ℂ, to functions into a ring and to permutation
+  groups, without anyone restating it.
 
-  The structures form a hierarchy:
+  ## What a type class is
+
+  `Group G` is a *structure*: it bundles the data (`*`, `1`, `⁻¹`) with
+  the axioms they satisfy. What makes it a **class** rather than an
+  ordinary structure is that its inhabitants are recorded in a
+  database, and Lean may look them up by itself. So in
+
+    theorem mul_comm {G : Type*} [CommMagma G] (a b : G) : a * b = b * a
+
+  the bracket `[CommMagma G]` is an argument like any other; the only
+  difference is who supplies it. You write `a` and `b`, Lean finds the
+  structure.
+
+  The hierarchy is the expected one, each level extending the previous:
     Monoid → Group → CommGroup
     Ring → CommRing → Field
     AddCommGroup + scalars → Module (generalizes vector space)
+
+  ## Instance synthesis
+
+  An entry is added to the database with `instance`; finding one is
+  **instance synthesis**. `#synth C α` runs that search and displays
+  what it found — a good way to watch the machinery work.
 -/
+
+#synth CommRing ℤ                    -- Int.instCommRing
+#synth Monoid ℝ                      -- Real.instMonoid
 
 /-
-  **Instance synthesis**
+  The search is not a table lookup but a small proof search, and the
+  names it returns show it. Two mechanisms do the work.
 
-  Lean maintains a database of type class *instances*.
-  When we want to apply a lemma whose signature contains
-  `[CommRing R]`, Lean automatically searches this database for an
-  instance of `CommRing R` for the type `R` at hand — this is
-  *instance synthesis*. The `inferInstance` command triggers this
-  search explicitly, and the `#synth` command lets us check that an
-  instance exists (and find its name).
+  **Instances are inherited along the hierarchy.** A group is a monoid,
+  so a `Monoid` instance can be obtained from a `Group` one:
 -/
 
-#synth CommRing ℤ   -- Int.instCommRing
-#synth Monoid ℝ      -- Real.instMonoid
-#synth Field ℂ      -- Complex.instField
+#synth Monoid (Equiv.Perm (Fin 3))   -- Equiv.Perm.permGroup.toMonoid
 
 /-
-  **What can be an instance**: only *type classes* may appear in
-  this database. An ordinary proposition (like `Nat.Prime 5 : Prop`)
-  cannot appear directly. This is why we use `Fact P`: it is a type
-  class with a single field `out : P`, which lets us register a
-  proposition in the instance database.
+  Read that answer: Lean found `permGroup` — permutations form a group —
+  and walked down the hierarchy with `.toMonoid`.
+
+  **Instances may themselves take instances as arguments.** "If `R` is a
+  commutative ring, so are the functions into `R`" is an instance, so
+  the search composes:
 -/
--- (`norm_num` proves goals about concrete numbers,
---  here `Nat.Prime 5`)
+
+#synth CommRing (ℕ → ℝ)              -- Pi.commRing
+
+/-
+  That composition is the whole point: it is why a single lemma serves
+  everywhere.
+-/
+
+example (a b : ℕ) : a * b = b * a := mul_comm a b
+example (a b : ℂ) : a * b = b * a := mul_comm a b
+example (f g : ℕ → ℝ) : f * g = g * f := mul_comm f g
+example (a b : ZMod 7) : a * b = b * a := mul_comm a b
+
+/-
+  Four different instances, all found by Lean, none written by us. Keep
+  this in mind when stating your own results: assume the weakest
+  structure that makes the statement true, and it will apply in
+  situations you had not thought of.
+
+  When something fails to typecheck for no visible reason, instance
+  search is often the culprit. `#synth` says whether the instance exists
+  at all, and `inferInstance` asks for it inside a term.
+-/
+
+example : Monoid ℝ := inferInstance
+
+/-
+  ## An aside: `Fact`
+
+  Only *classes* live in the database, so an ordinary proposition cannot
+  be registered. Yet `ZMod n` is a field exactly when `n` is prime —
+  precisely the kind of fact one would like the search to use.
+
+  `Fact p` is the way around it: a class with a single field, wrapping a
+  proposition so that it can be registered like any instance.
+-/
+
+-- (`norm_num` proves goals about concrete numbers, here `Nat.Prime 5`)
 example : Field (ZMod 5) := by
   have : Fact (Nat.Prime 5) := ⟨by norm_num⟩
   exact inferInstance
