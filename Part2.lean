@@ -44,13 +44,15 @@ noncomputable section
     theorem mul_comm {G : Type*} [CommMagma G] (a b : G) : a * b = b * a
 
   the bracket `[CommMagma G]` is an argument like any other; the only
-  difference is who supplies it. You write `a` and `b`, Lean finds the
+  difference is who supplies it. You give `a` and `b`, Lean finds the
   structure.
 
   The hierarchy is the expected one, each level extending the previous:
     Monoid → Group → CommGroup
     Ring → CommRing → Field
     AddCommGroup + scalars → Module (generalizes vector space)
+  The real hierarchy is far finer: `mul_comm` above needs only
+  `CommMagma`, a class that does not even appear in this sketch.
 
   ## Instance synthesis
 
@@ -62,8 +64,12 @@ noncomputable section
 #synth Monoid ℝ                      -- Real.instMonoid
 
 /-
-  This is not a table lookup but a small proof search, and the names
-  returned show it. Two mechanisms do the work.
+  Instances are not entries in a table — there are infinitely many
+  types, so no table would do. They are **rules**, some of them with
+  hypotheses: `Pi.commRing` says "if each `f i` is a commutative ring,
+  so are the functions into them". Lean treats the instance it needs as
+  a *goal* and chains such rules, exactly as `apply` does. The composite
+  names it returns show the chain. Two mechanisms do the work.
 
   **Instances are inherited along the hierarchy** — a group is a monoid:
 -/
