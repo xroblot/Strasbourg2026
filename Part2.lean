@@ -31,17 +31,15 @@ noncomputable section
   # Algebraic structures
 
   Mathlib describes algebraic structures with **type classes**. We start
-  with how that machinery works, because it is what makes the library
-  usable: it is the reason one lemma about commutative multiplication
-  applies to ℕ, to ℂ, to functions into a ring and to permutation
-  groups, without anyone restating it.
+  with how that machinery works: it is what makes one lemma about
+  commutative multiplication apply to ℕ, to ℂ, to functions into a ring
+  and to permutation groups, without anyone restating it.
 
   ## What a type class is
 
-  `Group G` is a *structure*: it bundles the data (`*`, `1`, `⁻¹`) with
-  the axioms they satisfy. What makes it a **class** rather than an
-  ordinary structure is that its inhabitants are recorded in a
-  database, and Lean may look them up by itself. So in
+  `Group G` is a *structure*, bundling the data (`*`, `1`, `⁻¹`) with
+  their axioms. What makes it a **class** is that its inhabitants are
+  recorded in a database Lean may consult by itself. So in
 
     theorem mul_comm {G : Type*} [CommMagma G] (a b : G) : a * b = b * a
 
@@ -56,38 +54,35 @@ noncomputable section
 
   ## Instance synthesis
 
-  An entry is added to the database with `instance`; finding one is
-  **instance synthesis**. `#synth C α` runs that search and displays
-  what it found — a good way to watch the machinery work.
+  An entry is added with `instance`; finding one is **instance
+  synthesis**. `#synth C α` runs that search and shows what it found.
 -/
 
 #synth CommRing ℤ                    -- Int.instCommRing
 #synth Monoid ℝ                      -- Real.instMonoid
 
 /-
-  The search is not a table lookup but a small proof search, and the
-  names it returns show it. Two mechanisms do the work.
+  This is not a table lookup but a small proof search, and the names
+  returned show it. Two mechanisms do the work.
 
-  **Instances are inherited along the hierarchy.** A group is a monoid,
-  so a `Monoid` instance can be obtained from a `Group` one:
+  **Instances are inherited along the hierarchy** — a group is a monoid:
 -/
 
 #synth Monoid (Equiv.Perm (Fin 3))   -- Equiv.Perm.permGroup.toMonoid
 
 /-
-  Read that answer: Lean found `permGroup` — permutations form a group —
-  and walked down the hierarchy with `.toMonoid`.
+  Read the answer: Lean found `permGroup` — permutations form a group —
+  then walked down with `.toMonoid`.
 
-  **Instances may themselves take instances as arguments.** "If `R` is a
-  commutative ring, so are the functions into `R`" is an instance, so
-  the search composes:
+  **Instances may take instances as arguments.** "If `R` is a commutative
+  ring, so are the functions into `R`" is itself an instance, so the
+  search composes:
 -/
 
 #synth CommRing (ℕ → ℝ)              -- Pi.commRing
 
 /-
-  That composition is the whole point: it is why a single lemma serves
-  everywhere.
+  That composition is the whole point: one lemma serves everywhere.
 -/
 
 example (a b : ℕ) : a * b = b * a := mul_comm a b
@@ -96,14 +91,14 @@ example (f g : ℕ → ℝ) : f * g = g * f := mul_comm f g
 example (a b : ZMod 7) : a * b = b * a := mul_comm a b
 
 /-
-  Four different instances, all found by Lean, none written by us. Keep
-  this in mind when stating your own results: assume the weakest
-  structure that makes the statement true, and it will apply in
-  situations you had not thought of.
+  Four different instances, found by Lean, none written by us. Hence the
+  rule when stating your own results: assume the weakest structure that
+  makes the statement true, and it will apply where you had not thought
+  of.
 
   When something fails to typecheck for no visible reason, instance
-  search is often the culprit. `#synth` says whether the instance exists
-  at all, and `inferInstance` asks for it inside a term.
+  search is often the culprit: `#synth` says whether the instance exists,
+  `inferInstance` asks for it inside a term.
 -/
 
 example : Monoid ℝ := inferInstance
@@ -111,12 +106,11 @@ example : Monoid ℝ := inferInstance
 /-
   ## An aside: `Fact`
 
-  Only *classes* live in the database, so an ordinary proposition cannot
-  be registered. Yet `ZMod n` is a field exactly when `n` is prime —
-  precisely the kind of fact one would like the search to use.
-
-  `Fact p` is the way around it: a class with a single field, wrapping a
-  proposition so that it can be registered like any instance.
+  Only *classes* live in the database, so a plain proposition cannot be
+  registered — yet `ZMod n` is a field exactly when `n` is prime, just
+  the kind of fact the search should use. `Fact p` is the way around it:
+  a class with a single field, wrapping a proposition so that it can be
+  registered like any instance.
 -/
 
 -- (`norm_num` proves goals about concrete numbers, here `Nat.Prime 5`)
@@ -141,9 +135,8 @@ example {G H : Type*} [Group G] [Group H] (f : G →* H) : f 1 = 1 :=
 #check eq_inv_of_mul_eq_one_left
 
 -- f(a⁻¹) = f(a)⁻¹
--- `rw [h]` rewrites the goal using an equality `h` (left-to-right);
---   `rw [← h]` rewrites right-to-left. A list `rw [h1, h2, ...]`
---   applies the rewrites in order.
+-- `rw [h]` rewrites the goal with an equality `h`, left-to-right;
+--   `rw [← h]` goes right-to-left; `rw [h1, h2]` applies both in turn.
 -- Idea: show f(a) * f(a⁻¹) = 1, then conclude with
 --   `eq_inv_of_mul_eq_one_left`
 example {G H : Type*} [Group G] [Group H] (f : G →* H) (a : G) :
@@ -172,10 +165,8 @@ example {G H : Type*} [Group G] [Group H] (f : G →* H)
 -- Hint: `pow_succ x n : x ^ (n + 1) = x ^ n * x`
 --   and `mul_mul_mul_comm`
 --
--- The `simp` tactic simplifies the goal by applying a database of
--- lemmas automatically. `simp?` does the same but displays the
--- lemmas it used — useful to understand, or to replace `simp` by a
--- more explicit call.
+-- `simp` simplifies the goal with a database of lemmas; `simp?` shows
+-- which ones it used.
 --
 -- Skeleton of the induction:
 --   induction n with
@@ -271,13 +262,11 @@ example (x : ℤˣ) : (x : ℤ) = 1 ∨ (x : ℤ) = -1 := by
 /-
   # Analysis and topology
 
-  **A note on filters**: *filters* are a central abstraction in
-  Mathlib, both in analysis and in topology. On the analysis side,
-  limits are written with them: `Filter.Tendsto f (nhds a) (nhds b)`
-  means `f(x) → b` as `x → a`, which unifies limits at a point, at
-  infinity, convergent sequences, etc. On the topology side, they
-  underpin neighborhoods (`𝓝 x`), continuity, closure, and even
-  compactness. We do not go into these details here.
+  **A word on filters.** Mathlib expresses limits with *filters*:
+  `Filter.Tendsto f (𝓝 a) (𝓝 b)` says `f x → b` as `x → a`, one notion
+  covering limits at a point, at infinity and of sequences alike. They
+  also underpin neighbourhoods, continuity, closure and compactness. We
+  will use the notions they define without opening the box.
 -/
 
 /-
@@ -428,8 +417,8 @@ example (f : ℝ → ℝ) (hf : Continuous f) (h0 : f 0 < 0)
 /-
   # Searching Mathlib
 
-  Mathlib contains thousands of lemmas.
-  Here are the tools to find them.
+  Mathlib contains hundreds of thousands of lemmas. Here is how to find
+  the one you need.
 
   ## Interactive tactics (in a proof)
 
@@ -439,8 +428,8 @@ example (f : ℝ → ℝ) (hf : Continuous f) (h0 : f 0 < 0)
 
   ## In-editor search commands (no browser needed)
 
-  Mathlib ships two commands that query the search engines directly
-  from the editor and show clickable results in the Infoview:
+  Two commands query the search engines from the editor, with clickable
+  results in the Infoview:
 
   * `#loogle <pattern>` — Loogle search, by type pattern or by
     constant names:
@@ -449,8 +438,8 @@ example (f : ℝ → ℝ) (hf : Continuous f) (h0 : f 0 < 0)
   * `#leansearch "..."` — natural-language search; the query must
     end with `.` or `?`.
 
-  Both also work inside a `by` block, where the results offer
-  ready-made `exact …`/`apply …`.
+  Both work inside a `by` block, where results come as ready-made
+  `exact …`/`apply …`.
 
   ## Search engines (in the browser)
 
