@@ -131,7 +131,7 @@ noncomputable section
 
   **History.** Kevin Hartnett, *The Proof in the Code: How a Truth
   Machine Is Transforming Math and AI* (Quanta Books, 2026) tells the
-  story of Lean and Mathlib. Journalism, no prerequisites.
+  story of Lean and Mathlib.
 -/
 
 /-
@@ -146,7 +146,7 @@ noncomputable section
 -- Ordinary values
 #check 2                      -- ℕ  (the default for a bare numeral)
 #check (2 : ℝ)                -- ℝ  (a type ascription forces the choice)
-#check (2, 3)                 -- ℕ × ℕ
+#check (2, (3 : ℚ))           -- ℕ × ℚ
 
 -- Types are themselves expressions, with a type of their own
 #check ℕ                       -- Type

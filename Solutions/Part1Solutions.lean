@@ -153,3 +153,23 @@ example {β : Type*} {f : α → β} (hf : Function.Injective f)
     have : x = x' := hf (Eq.symm hxx')
     subst this
     exact ⟨x, ⟨hxs, hxt⟩, rfl⟩
+
+/- # Types, coercions and subtypes -/
+
+-- Casts commute with multiplication
+example (n m : ℕ) : ((n * m : ℕ) : ℝ) = (n : ℝ) * (m : ℝ) := by
+  push_cast
+  ring
+
+-- With a hypothesis, subtraction survives the cast
+-- (`Nat.cast_sub h` also does it in one rewrite)
+example (n : ℕ) (h : 5 ≤ n) : ((n - 5 : ℕ) : ℤ) = (n : ℤ) - 5 := by
+  lia
+
+-- Two positive naturals with the same value are equal
+example (x y : { n : ℕ // 0 < n }) (h : (x : ℕ) = (y : ℕ)) : x = y :=
+  Subtype.ext h
+
+-- A function cannot distinguish two proofs of the same proposition:
+-- by proof irrelevance the two arguments are definitionally equal
+example (p : Prop) (f : p → ℕ) (h₁ h₂ : p) : f h₁ = f h₂ := rfl
