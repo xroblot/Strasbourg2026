@@ -53,7 +53,7 @@ noncomputable section
 -/
 
 #synth CommRing ℤ   -- Int.instCommRing
-#synth Monoid ℝ      -- Real.instField
+#synth Monoid ℝ      -- Real.instMonoid
 #synth Field ℂ      -- Complex.instField
 
 /-
